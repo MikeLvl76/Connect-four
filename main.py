@@ -61,13 +61,10 @@ def get_diagonals(i: int, j: int) -> dict:
     print(d1, d2)
     print(d3, d4)
 
-    d1_without_element = [*d1[1::]]
-    d3_without_element = [*d3[1::]]
-
     return {
         "location": (i, j, get_location(i, j)),
-        "first_diagonal": [*d1_without_element[::-1], *d2],
-        "second_diagonal": [*d3_without_element[::-1], *d4],
+        "first_diagonal": [*[*d1[1::]][::-1], *d2],
+        "second_diagonal": [*[*d3[1::]][::-1], *d4],
     }
 
 
