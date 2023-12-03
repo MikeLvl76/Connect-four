@@ -1,4 +1,4 @@
-from json import dumps
+from itertools import groupby
 
 p1: dict = {"name": "p1", "color": "red", "token": "R", "playing": True}
 p2: dict = {"name": "p2", "color": "yellow", "token": "Y"}
@@ -65,25 +65,53 @@ def get_diagonals(i: int, j: int) -> dict:
     }
 
 
-def is_win(array: list[str]):
+def all_equal(string: str):
+    return all(char == string[0] and char != BOARD_CELLS_CHAR for char in string)
+
+
+def is_win(array: list[str]) -> tuple[bool, str]:
     string: str = "".join(array)
-    res: dict = {}
-    for i in range(len(string) - 1):
-        sub: str = string[i : i + 1]
-        freq: int = res.get(sub) or 0
-        res[sub]: int = freq + 1
+    quatuors: list[str] = []
+    count: int = 4
+    for i in range(len(string) - count):
+        sub: str = string[i : i + count]
+        quatuors.append(sub)
 
-    most_frequent_name: str = ""
-    most_frequent_value: int = 0
+    for quatuor in quatuors:
+        if all_equal(quatuor):
+            return True, f"Winning combination: {quatuor}"
 
-    for item in res.items():
-        if item[1] > most_frequent_value:
-            most_frequent_name, most_frequent_value = item
-
-    return most_frequent_name, most_frequent_value == 4
+    return False, "No winning combination"
 
 
-# Fix this
+def end_game() -> str:
+    for i in range(NUMBER_OF_ROWS):
+        win, message = is_win(get_row(i))
+        if win:
+            return message
+
+    for j in range(NUMBER_OF_COLS):
+        win, message = is_win(get_col(j))
+        if win:
+            return message
+
+    for i in range(NUMBER_OF_ROWS):
+        for j in range(NUMBER_OF_COLS):
+            diagonals = get_diagonals(i, j)
+            first_diagonal = diagonals.get("first_diagonal")
+            second_diagonal = diagonals.get("second_diagonal")
+
+            first_diagonal_win, message = is_win(first_diagonal)
+            second_diagonal_win, msg = is_win(second_diagonal)
+            
+            if first_diagonal_win:
+                return message
+            if second_diagonal_win:
+                return msg
+
+    return "Game not finished!"
+
+
 def insert() -> None:
     while True:
         index = int(input("Choose column index (from 0 to 5): "))
@@ -91,7 +119,7 @@ def insert() -> None:
         col = get_col(index)
         col_items = enumerate(col)
 
-        token = p1["token"] if p1["playing"] else p2["token"]
+        token = p1.get("token") if p1.get("playing") else p2.get("token")
 
         token_idx = 0
 
@@ -100,13 +128,13 @@ def insert() -> None:
                 token_idx = count
                 break
 
-            if token != p1["token"]:
-                if value == p1["token"]:
+            if token != p1.get("token"):
+                if value == p1.get("token"):
                     token_idx = count
                     break
 
-            if token != p2["token"]:
-                if value == p2["token"]:
+            if token != p2.get("token"):
+                if value == p2.get("token"):
                     token_idx = count
                     break
 
@@ -119,8 +147,9 @@ def insert() -> None:
 
         set_col(index, col)
         print_board()
+        print(end_game())
 
-        p1["playing"] = not p1["playing"]
+        p1.update({"playing": not p1.get("playing")})
 
 
 if __name__ == "__main__":
@@ -128,5 +157,4 @@ if __name__ == "__main__":
     # diagonals = get_diagonals(0, 0)
     # first_diagonal = diagonals.get("first_diagonal")
     # print(is_win(first_diagonal))
-    # print(get_diagonals(4, 5))
     insert()
