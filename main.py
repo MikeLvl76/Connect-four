@@ -1,14 +1,13 @@
 from json import dumps
 
 p1: dict = {"name": "p1", "color": "red", "token": "R", "playing": True}
-
-p2: dict = {"name": "p2", "color": "yellow", "token": "Y", "playing": False}
+p2: dict = {"name": "p2", "color": "yellow", "token": "Y"}
 
 NUMBER_OF_ROWS = 7
 NUMBER_OF_COLS = 6
+BOARD_CELLS_CHAR = "?"
 board: list[list[str]] = [
-    ["1" if i == j else "0" for i in range(NUMBER_OF_COLS)]
-    for j in range(NUMBER_OF_ROWS)
+    [BOARD_CELLS_CHAR for _ in range(NUMBER_OF_COLS)] for _ in range(NUMBER_OF_ROWS)
 ]
 
 
@@ -16,7 +15,7 @@ def print_board() -> None:
     output = ""
     for row in board:
         output += f'{"     ".join(row)}\n'
-    print(output)
+    print(output, end="")
 
 
 def get_row(index: int) -> list[str]:
@@ -84,43 +83,44 @@ def is_win(array: list[str]):
     return most_frequent_name, most_frequent_value == 4
 
 
+# Fix this
 def insert() -> None:
     while True:
         index = int(input("Choose column index (from 0 to 5): "))
+
         col = get_col(index)
+        col_items = enumerate(col)
 
-        try:
-            idx = col.index(p1["token"] if p1["playing"] else p2["token"])
-            opponent_token_idx = col.index(
-                p2["token"] if p1["playing"] else p1["token"]
+        token = p1["token"] if p1["playing"] else p2["token"]
+
+        token_idx = 0
+
+        for count, value in col_items:
+            if value == token:
+                token_idx = count
+                break
+
+            if token != p1["token"]:
+                if value == p1["token"]:
+                    token_idx = count
+                    break
+
+            if token != p2["token"]:
+                if value == p2["token"]:
+                    token_idx = count
+                    break
+
+        if token_idx == 0:
+            col[len(col) - 1] = (
+                token if col[len(col) - 1] == BOARD_CELLS_CHAR else col[len(col) - 1]
             )
+        else:
+            col[token_idx - 1] = token
 
-            if idx > 0 or opponent_token_idx > 0:  # both tokens exist
-                if (
-                    idx > opponent_token_idx
-                ):  # player token inserted before opponent token
-                    col[opponent_token_idx - 1] = (
-                        p1["token"] if p1["playing"] else p2["token"]
-                    )
-                else:  # player token inserted after opponent token
-                    col[idx - 1] = p1["token"] if p1["playing"] else p2["token"]
-                set_col(index, col)
-
-        except ValueError:
-            print("ValueError")
-            if col[len(col) - 1] == p1["token"] if p1["playing"] else p2["token"]:
-                col[len(col) - 2] = p2["token"] if p2["playing"] else p1["token"]
-            else:
-                col[len(col) - 1] = p1["token"] if p1["playing"] else p2["token"]
-            set_col(index, col)
-
+        set_col(index, col)
         print_board()
 
-        if p1["playing"]:
-            p1["playing"], p2["playing"] = p2["playing"], p1["playing"]
-
-        elif p2["playing"]:
-            p2["playing"], p1["playing"] = p1["playing"], p2["playing"]
+        p1["playing"] = not p1["playing"]
 
 
 if __name__ == "__main__":
