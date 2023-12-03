@@ -1,5 +1,3 @@
-from itertools import groupby
-
 p1: dict = {"name": "p1", "color": "red", "token": "R", "playing": True}
 p2: dict = {"name": "p2", "color": "yellow", "token": "Y"}
 
@@ -71,11 +69,8 @@ def all_equal(string: str):
 
 def is_win(array: list[str]) -> tuple[bool, str]:
     string: str = "".join(array)
-    quatuors: list[str] = []
     count: int = 4
-    for i in range(len(string) - count):
-        sub: str = string[i : i + count]
-        quatuors.append(sub)
+    quatuors: list[str] = [string[i : i + count] for i in range(len(string) - count + 1)]
 
     for quatuor in quatuors:
         if all_equal(quatuor):
