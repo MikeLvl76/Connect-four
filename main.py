@@ -14,13 +14,13 @@ board: list[list[str]] = [
 def print_board() -> None:
     system("cls" if name == "nt" else "clear")
 
-    print(f"   {'     '.join(str(i) for i in range(len(board[0])))}") # column indices
-    print(f"{'-' * 6 * len(board[0])}-") # header line
+    print(f"   {'     '.join(str(i) for i in range(len(board[0])))}")  # column indices
+    print(f"{'-' * 6 * len(board[0])}-")  # header line
 
     for row in board:
-        print(f"| {' | '.join(cell.center(3) for cell in row)} |") # each row
+        print(f"| {' | '.join(cell.center(3) for cell in row)} |")  # each row
 
-    print(f"{'-' * 6 * len(board[0])}-") # footer line
+    print(f"{'-' * 6 * len(board[0])}-")  # footer line
 
 
 def get_row(index: int) -> list[str]:
@@ -88,16 +88,16 @@ def is_win(array: list[str]) -> tuple[bool, str]:
     return False, "No winning combination"
 
 
-def end_game() -> str:
+def end_game() -> tuple[bool, str]:
     for i in range(NUMBER_OF_ROWS):
         win, message = is_win(get_row(i))
         if win:
-            return message
+            return win, message
 
     for j in range(NUMBER_OF_COLS):
         win, message = is_win(get_col(j))
         if win:
-            return message
+            return win, message
 
     for i in range(NUMBER_OF_ROWS):
         for j in range(NUMBER_OF_COLS):
@@ -109,11 +109,11 @@ def end_game() -> str:
             second_diagonal_win, msg = is_win(second_diagonal)
 
             if first_diagonal_win:
-                return message
+                return first_diagonal_win, message
             if second_diagonal_win:
-                return msg
+                return second_diagonal_win, message
 
-    return "Game not finished!"
+    return False, "Game not finished!"
 
 
 def insert() -> None:
@@ -151,14 +151,15 @@ def insert() -> None:
 
         set_col(index, col)
         print_board()
-        print(end_game())
+
+        is_end, message = end_game()
+        print(message)
+        if is_end:
+            break
 
         p1.update({"playing": not p1.get("playing")})
 
 
 if __name__ == "__main__":
     print_board()
-    # diagonals = get_diagonals(0, 0)
-    # first_diagonal = diagonals.get("first_diagonal")
-    # print(is_win(first_diagonal))
     insert()
