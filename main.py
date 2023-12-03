@@ -1,8 +1,10 @@
+from os import system, name
+
 p1: dict = {"name": "p1", "color": "red", "token": "R", "playing": True}
 p2: dict = {"name": "p2", "color": "yellow", "token": "Y"}
 
-NUMBER_OF_ROWS = 7
-NUMBER_OF_COLS = 6
+NUMBER_OF_ROWS = 6
+NUMBER_OF_COLS = 7
 BOARD_CELLS_CHAR = "?"
 board: list[list[str]] = [
     [BOARD_CELLS_CHAR for _ in range(NUMBER_OF_COLS)] for _ in range(NUMBER_OF_ROWS)
@@ -10,10 +12,15 @@ board: list[list[str]] = [
 
 
 def print_board() -> None:
-    output = ""
+    system("cls" if name == "nt" else "clear")
+
+    print(f"   {'     '.join(str(i) for i in range(len(board[0])))}") # column indices
+    print(f"{'-' * 6 * len(board[0])}-") # header line
+
     for row in board:
-        output += f'{"     ".join(row)}\n'
-    print(output, end="")
+        print(f"| {' | '.join(cell.center(3) for cell in row)} |") # each row
+
+    print(f"{'-' * 6 * len(board[0])}-") # footer line
 
 
 def get_row(index: int) -> list[str]:
@@ -47,13 +54,13 @@ def get_diagonals(i: int, j: int) -> dict:
         if i - k >= 0 and j - k >= 0:
             d1.append(get_location(i - k, j - k))  # top left
 
-        if i + k < length + 1 and j + k < length:
+        if i + k < length and j + k < length + 1:
             d2.append(get_location(i + k, j + k))  # bottom right
 
-        if i - k >= 0 and j + k < length:
+        if i - k >= 0 and j + k < length + 1:
             d3.append(get_location(i - k, j + k))  # top right
 
-        if i + k < length + 1 and j - k >= 0:
+        if i + k < length and j - k >= 0:
             d4.append(get_location(i + k, j - k))  # bottom left
 
     return {
@@ -70,7 +77,9 @@ def all_equal(string: str):
 def is_win(array: list[str]) -> tuple[bool, str]:
     string: str = "".join(array)
     count: int = 4
-    quatuors: list[str] = [string[i : i + count] for i in range(len(string) - count + 1)]
+    quatuors: list[str] = [
+        string[i : i + count] for i in range(len(string) - count + 1)
+    ]
 
     for quatuor in quatuors:
         if all_equal(quatuor):
@@ -98,7 +107,7 @@ def end_game() -> str:
 
             first_diagonal_win, message = is_win(first_diagonal)
             second_diagonal_win, msg = is_win(second_diagonal)
-            
+
             if first_diagonal_win:
                 return message
             if second_diagonal_win:
@@ -109,7 +118,7 @@ def end_game() -> str:
 
 def insert() -> None:
     while True:
-        index = int(input("Choose column index (from 0 to 5): "))
+        index = int(input("Choose column index (from 0 to 6): "))
 
         col = get_col(index)
         col_items = enumerate(col)
