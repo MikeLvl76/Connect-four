@@ -1,2 +1,5 @@
 # vscode cache
 .vscode
+
+# python cache
+__pycache__

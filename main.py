@@ -1,11 +1,18 @@
 from os import system, name
+from colors import Terminal_Colors
 
-p1: dict = {"name": "p1", "color": "red", "token": "R", "playing": True}
+p1: dict = {
+    "name": "p1",
+    "color": "red",
+    "token": "R",
+    "playing": True,
+}
+
 p2: dict = {"name": "p2", "color": "yellow", "token": "Y"}
 
 NUMBER_OF_ROWS = 6
 NUMBER_OF_COLS = 7
-BOARD_CELLS_CHAR = "?"
+BOARD_CELLS_CHAR = "\u25cf"
 board: list[list[str]] = [
     [BOARD_CELLS_CHAR for _ in range(NUMBER_OF_COLS)] for _ in range(NUMBER_OF_ROWS)
 ]
@@ -13,12 +20,21 @@ board: list[list[str]] = [
 
 def print_board() -> None:
     system("cls" if name == "nt" else "clear")
+    red = f" {Terminal_Colors.FAIL}{BOARD_CELLS_CHAR}{Terminal_Colors.ENDC} "
+    yellow = f" {Terminal_Colors.WARNING}{BOARD_CELLS_CHAR}{Terminal_Colors.ENDC} "
 
     print(f"   {'     '.join(str(i) for i in range(len(board[0])))}")  # column indices
     print(f"{'-' * 6 * len(board[0])}-")  # header line
 
     for row in board:
-        print(f"| {' | '.join(cell.center(3) for cell in row)} |")  # each row
+        formatted_row = [
+            cell.center(3) if cell == BOARD_CELLS_CHAR else
+            red.center(3) if cell == p1.get('token') else
+            yellow.center(3)
+            for cell in row
+        ]
+
+        print(f"| {' | '.join(formatted_row)} |") # each row
 
     print(f"{'-' * 6 * len(board[0])}-")  # footer line
 
@@ -70,54 +86,98 @@ def get_diagonals(i: int, j: int) -> dict:
     }
 
 
-def all_equal(string: str):
-    return all(char == string[0] and char != BOARD_CELLS_CHAR for char in string)
+def check_winner() -> tuple[bool, list[str], str]:
+    # Check horizontally
+    for row in range(NUMBER_OF_ROWS):
+        for col in range(NUMBER_OF_COLS - 3):
+            line = [
+                get_location(row, col),
+                get_location(row, col + 1),
+                get_location(row, col + 2),
+                get_location(row, col + 3),
+            ]
+
+            if all(
+                element != BOARD_CELLS_CHAR and element == line[0] for element in line
+            ):
+                return (
+                    True,
+                    line,
+                    f"Player {'P1' if line[0] == p1.get('token') else 'P2'} wins horizontally",
+                )
+
+    # Check vertically
+    for row in range(NUMBER_OF_ROWS - 3):
+        for col in range(NUMBER_OF_COLS):
+            line = [
+                get_location(row, col),
+                get_location(row + 1, col),
+                get_location(row + 2, col),
+                get_location(row + 3, col),
+            ]
+
+            if all(
+                element != BOARD_CELLS_CHAR and element == line[0] for element in line
+            ):
+                return (
+                    True,
+                    line,
+                    f"Player {'P1' if line[0] == p1.get('token') else 'P2'} wins vertically",
+                )
+
+    # Check diagonally (from top-left to bottom-right)
+    for row in range(NUMBER_OF_ROWS - 3):
+        for col in range(NUMBER_OF_COLS - 3):
+            line = [
+                get_location(row, col),
+                get_location(row + 1, col + 1),
+                get_location(row + 2, col + 2),
+                get_location(row + 3, col + 3),
+            ]
+
+            if all(
+                element != BOARD_CELLS_CHAR and element == line[0] for element in line
+            ):
+                return (
+                    True,
+                    line,
+                    f"Player {'P1' if line[0] == p1.get('token') else 'P2'} wins diagonally",
+                )
+
+    # Check diagonally (from top-right to bottom-left)
+    for row in range(3, NUMBER_OF_ROWS):
+        for col in range(NUMBER_OF_COLS - 3):
+            line = [
+                get_location(row, col),
+                get_location(row - 1, col + 1),
+                get_location(row - 2, col + 2),
+                get_location(row - 3, col + 3),
+            ]
+
+            if all(
+                element != BOARD_CELLS_CHAR and element == line[0] for element in line
+            ):
+                return (
+                    True,
+                    line,
+                    f"Player {'P1' if line[0] == p1.get('token') else 'P2'} wins diagonally",
+                )
+
+    return False, [], "No winning combination"
 
 
-def is_win(array: list[str]) -> tuple[bool, str]:
-    string: str = "".join(array)
-    count: int = 4
-    quatuors: list[str] = [
-        string[i : i + count] for i in range(len(string) - count + 1)
-    ]
+def check_draw():
+    for row in range(NUMBER_OF_ROWS):
+        for col in range(NUMBER_OF_COLS):
+            if get_location(row, col) == BOARD_CELLS_CHAR:
+                return False
 
-    for quatuor in quatuors:
-        if all_equal(quatuor):
-            return True, f"Winning combination: {quatuor}"
-
-    return False, "No winning combination"
-
-
-def end_game() -> tuple[bool, str]:
-    for i in range(NUMBER_OF_ROWS):
-        win, message = is_win(get_row(i))
-        if win:
-            return win, message
-
-    for j in range(NUMBER_OF_COLS):
-        win, message = is_win(get_col(j))
-        if win:
-            return win, message
-
-    for i in range(NUMBER_OF_ROWS):
-        for j in range(NUMBER_OF_COLS):
-            diagonals = get_diagonals(i, j)
-            first_diagonal = diagonals.get("first_diagonal")
-            second_diagonal = diagonals.get("second_diagonal")
-
-            first_diagonal_win, message = is_win(first_diagonal)
-            second_diagonal_win, msg = is_win(second_diagonal)
-
-            if first_diagonal_win:
-                return first_diagonal_win, message
-            if second_diagonal_win:
-                return second_diagonal_win, message
-
-    return False, "Game not finished!"
+    return True
 
 
 def insert() -> None:
     while True:
+        print("P1 turn" if p1.get("playing") else "P2 turn")
         index = int(input("Choose column index (from 0 to 6): "))
 
         col = get_col(index)
@@ -152,9 +212,18 @@ def insert() -> None:
         set_col(index, col)
         print_board()
 
-        is_end, message = end_game()
-        print(message)
+        is_end, combination, message = check_winner()
+
         if is_end:
+            red_cell = f"{Terminal_Colors.FAIL}{BOARD_CELLS_CHAR}{Terminal_Colors.ENDC}"
+            yellow_cell = f"{Terminal_Colors.WARNING}{BOARD_CELLS_CHAR}{Terminal_Colors.ENDC}"
+
+            print(message)
+            print(f"Combination: {[red_cell if cell == p1.get('token') else yellow_cell for cell in combination]}")
+            break
+
+        if check_draw():
+            print("DRAW")
             break
 
         p1.update({"playing": not p1.get("playing")})
