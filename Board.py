@@ -1,5 +1,8 @@
 from os import system, name
-from Player import Player
+from random import randint
+from time import sleep
+from typing import Union
+from Player import Player, Type
 
 
 class Board:
@@ -68,13 +71,21 @@ class Board:
         print(f"{current_player.name} {current_player.color} turn...")
         index = -1
 
-        while not (0 <= index <= 6):
-            try:
-                index = int(input("Choose column index (from 0 to 6): "))
-                if not (0 <= index <= 6):
-                    print("Index must be between 0 and 6.")
-            except ValueError:
-                print("Please enter a valid integer.")
+        if current_player.ai_move:
+            ai_move = current_player.ai_move
+            if ai_move == Type.random:
+                print(f'{current_player.name} thinking...')
+                sleep(3)
+                index = randint(0, 6)
+        else:
+            while not (0 <= index <= 6):
+                try:
+                    index = int(input("Choose column index (from 0 to 6): "))
+                    if not (0 <= index <= 6):
+                        print("Index must be between 0 and 6.")
+                except ValueError:
+                    print("Please enter a valid integer.")
+        
 
         col = self.get_col(index)
         col_items = enumerate(col)
@@ -106,7 +117,7 @@ class Board:
         self.first_player.playing = not self.first_player.playing
             
 
-    def get_winner(self) -> Player or None:
+    def get_winner(self) -> Union[Player, None]:
         # Check horizontally
         for row in range(self.rows_count):
             for col in range(self.cols_count - 3):
