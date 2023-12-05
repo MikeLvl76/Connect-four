@@ -10,9 +10,9 @@ if __name__ == "__main__":
 
     while True:
         board.print()
-        board.insert()
+        board.play()
 
-        winner = board.has_winner()
+        winner = board.get_winner()
         if winner:
             print(f"{winner} won!")
             break
