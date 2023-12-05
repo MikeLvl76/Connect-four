@@ -3,19 +3,22 @@ from typing import Union
 
 class Type:
     random = 'random'
-    fill_column = 'fill_column'
-    fill_row = 'fill_row'
+    above = 'above'
     follow = 'follow'
 
 class Player:
     def __init__(
         self, name: str, token: str, color: str, playing: bool = False, ai_move: Union[str, None] = None
     ) -> None:
-        self.name = name
-        self.token = token
-        self.color = color
-        self.playing = playing
-        self.ai_move = ai_move
+        self.name: str = name
+        self.token: str = token
+        self.color: str = color
+        self.playing: bool = playing
+        self.ai_move: Union[str, None] = ai_move
+        self.moves: list[tuple[int, int, str]] = []
+        
+    def save_move(self, i: int, j: int, token: str) -> None:
+        self.moves.append((i, j, token))
 
     def __str__(self) -> str:
         return f"{self.name}"

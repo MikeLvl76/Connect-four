@@ -73,10 +73,14 @@ class Board:
 
         if current_player.ai_move:
             ai_move = current_player.ai_move
+            print(f'{current_player.name} thinking...')
+            sleep(3)
             if ai_move == Type.random:
-                print(f'{current_player.name} thinking...')
-                sleep(3)
                 index = randint(0, 6)
+            if ai_move == Type.above:
+                opponent = self.first_player if current_player == self.second_player else self.second_player
+                last_move_index = opponent.moves[len(opponent.moves) - 1][1]
+                index = last_move_index if last_move_index < self.rows_count else last_move_index + 1
         else:
             while not (0 <= index <= 6):
                 try:
@@ -108,9 +112,11 @@ class Board:
             col[len(col) - 1] = (
                 current_player.token if col[len(col) - 1] == self.default_char else col[len(col) - 1]
             )
+            current_player.save_move(len(col) - 1, index, current_player.token)   
         else:
             col[token_idx - 1] = current_player.token
-
+            current_player.save_move(token_idx - 1, index, current_player.token)
+           
         self.set_col(index, col)
         self.print()
 
