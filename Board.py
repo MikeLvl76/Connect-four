@@ -2,7 +2,7 @@ from os import system, name
 from random import randint
 from time import sleep
 from typing import Union
-from Player import Player, Type
+from Player import Player, Player_Type
 
 
 class Board:
@@ -23,24 +23,25 @@ class Board:
         ]
         self.first_player = first_player
         self.second_player = second_player
+        self.turn = 0
 
     def get_row(self, index: int) -> list[str]:
-        assert index < self.rows_count and index >= 0, "Row index out of bounds"
+        assert index < self.rows_count and index >= 0, f"Index {index} for row is out of bounds"
         return self.board[index]
 
     def get_col(self, index: int) -> list[str]:
-        assert index < self.cols_count and index >= 0, "Col index out of bounds"
+        assert index < self.cols_count and index >= 0, f"Index {index} for column is out of bounds"
         return [self.board[i][index] for i in range(self.rows_count)]
 
     def set_col(self, index: int, col: list[str]) -> None:
-        assert index < self.cols_count and index >= 0, "Col index out of bounds"
+        assert index < self.cols_count and index >= 0, f"Index {index} for column is out of bounds"
         assert len(col) == self.rows_count, "Incorrect column size"
         for i in range(self.rows_count):
             self.board[i][index] = col[i]
 
     def get_location(self, i: int, j: int) -> str:
-        assert i < self.rows_count and i >= 0, "Row index out of bounds"
-        assert j < self.cols_count and j >= 0, "Col index out of bounds"
+        assert i < self.rows_count and i >= 0, f"Index {i} for row is out of bounds"
+        assert j < self.cols_count and j >= 0, f"Index {j} for column is out of bounds"
         return self.board[i][j]
 
     def get_diagonals(self, i: int, j: int) -> dict:
@@ -68,6 +69,7 @@ class Board:
 
     def play(self) -> None:
         current_player = self.first_player if self.first_player.playing else self.second_player
+        print(f'Number of turn played: {self.turn}')
         print(f"{current_player.name} {current_player.color} turn...")
         index = -1
 
@@ -75,18 +77,26 @@ class Board:
             ai_move = current_player.ai_move
             print(f'{current_player.name} thinking...')
             sleep(3)
-            if ai_move == Type.random:
-                index = randint(0, 6)
-            if ai_move == Type.above:
+            if ai_move == Player_Type.RANDOM:
+                index = randint(0, len(self.board[0]) - 1)
+            if ai_move == Player_Type.FOLLOW:
                 opponent = self.first_player if current_player == self.second_player else self.second_player
                 last_move_index = opponent.moves[len(opponent.moves) - 1][1]
-                index = last_move_index if last_move_index < self.rows_count else last_move_index + 1
+                if last_move_index < self.cols_count:
+                    next_index = last_move_index + 1
+                    if next_index == len(self.board[0]):
+                        print(last_move_index, next_index)
+                        assert False, "TODO: choose new index because board size is reached"  
+                    index = next_index
+                    
+                # last_move_index = opponent.moves[len(opponent.moves) - 1][1]
+                # index = last_move_index if last_move_index < self.rows_count else last_move_index + 1
         else:
-            while not (0 <= index <= 6):
+            while not (0 <= index <= len(self.board[0]) - 1):
                 try:
-                    index = int(input("Choose column index (from 0 to 6): "))
-                    if not (0 <= index <= 6):
-                        print("Index must be between 0 and 6.")
+                    index = int(input(f"Choose column index (from 0 to {len(self.board[0]) - 1}): "))
+                    if not (0 <= index <= len(self.board[0]) - 1):
+                        print(f"Index must be between 0 and {len(self.board[0]) - 1}.")
                 except ValueError:
                     print("Please enter a valid integer.")
         
@@ -121,6 +131,7 @@ class Board:
         self.print()
 
         self.first_player.playing = not self.first_player.playing
+        self.turn += 1
             
 
     def get_winner(self) -> Union[Player, None]:
@@ -218,9 +229,7 @@ class Board:
     def print(self) -> None:
         system("cls" if name == "nt" else "clear")
 
-        print(
-            f"   {'     '.join(str(i) for i in range(len(self.board[0])))}"
-        )  # column indices
+        print(f"   {'     '.join(str(i) for i in range(len(self.board[0])))}")  # column indices
         print(f"{'-' * 6 * len(self.board[0])}-")  # header line
 
         for row in self.board:
@@ -232,7 +241,6 @@ class Board:
                 else self.second_player.color.center(3)
                 for cell in row
             ]
-
             print(f"| {' | '.join(formatted_row)} |")  # each row
 
         print(f"{'-' * 6 * len(self.board[0])}-")  # footer line

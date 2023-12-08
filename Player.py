@@ -1,10 +1,9 @@
 from typing import Union
 
 
-class Type:
-    random = 'random'
-    above = 'above'
-    follow = 'follow'
+class Player_Type:
+    RANDOM = 'random'
+    FOLLOW = 'follow'
 
 class Player:
     def __init__(
