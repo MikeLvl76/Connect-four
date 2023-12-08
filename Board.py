@@ -132,90 +132,34 @@ class Board:
 
         self.first_player.playing = not self.first_player.playing
         self.turn += 1
-            
+        
+    
+    def get_winner_from_line(self, row_range: tuple[int, int, int], col_range: tuple[int, int, int], direction: str) -> Union[Player, None]:
+        for row in range(*row_range):
+            for col in range(*col_range):
+                line = []
+                if direction == 'horizontal':
+                    line = [self.get_location(row, col + i) for i in range(4)]
+                elif direction == 'vertical':
+                    line = [self.get_location(row + i, col) for i in range(4)]
+                elif direction == 'top_left_bottom_right':
+                    line = [self.get_location(row + i, col + i) for i in range(4)]
+                elif direction == 'top_right_bottom_left':
+                    line = [self.get_location(row - i, col + i) for i in range(4)]
 
-    def get_winner(self) -> Union[Player, None]:
-        # Check horizontally
-        for row in range(self.rows_count):
-            for col in range(self.cols_count - 3):
-                line = [
-                    self.get_location(row, col),
-                    self.get_location(row, col + 1),
-                    self.get_location(row, col + 2),
-                    self.get_location(row, col + 3),
-                ]
-
-                if all(
-                    element != self.default_char and element == line[0]
-                    for element in line
-                ):
-                    return (
-                        self.first_player
-                        if line[0] == self.first_player.token
-                        else self.second_player
-                    )
-
-        # Check vertically
-        for row in range(self.rows_count - 3):
-            for col in range(self.cols_count):
-                line = [
-                    self.get_location(row, col),
-                    self.get_location(row + 1, col),
-                    self.get_location(row + 2, col),
-                    self.get_location(row + 3, col),
-                ]
-
-                if all(
-                    element != self.default_char and element == line[0]
-                    for element in line
-                ):
-                    return (
-                        self.first_player
-                        if line[0] == self.first_player.token
-                        else self.second_player
-                    )
-
-        # Check diagonally (from top-left to bottom-right)
-        for row in range(self.rows_count - 3):
-            for col in range(self.cols_count - 3):
-                line = [
-                    self.get_location(row, col),
-                    self.get_location(row + 1, col + 1),
-                    self.get_location(row + 2, col + 2),
-                    self.get_location(row + 3, col + 3),
-                ]
-
-                if all(
-                    element != self.default_char and element == line[0]
-                    for element in line
-                ):
-                    return (
-                        self.first_player
-                        if line[0] == self.first_player.token
-                        else self.second_player
-                    )
-
-        # Check diagonally (from top-right to bottom-left)
-        for row in range(3, self.rows_count):
-            for col in range(self.cols_count - 3):
-                line = [
-                    self.get_location(row, col),
-                    self.get_location(row - 1, col + 1),
-                    self.get_location(row - 2, col + 2),
-                    self.get_location(row - 3, col + 3),
-                ]
-
-                if all(
-                    element != self.default_char and element == line[0]
-                    for element in line
-                ):
-                    return (
-                        self.first_player
-                        if line[0] == self.first_player.token
-                        else self.second_player
-                    )
+                if all(element != self.default_char and element == line[0] for element in line):
+                    return (self.first_player if line[0] == self.first_player.token else self.second_player)
 
         return None
+
+    def get_winner(self) -> Union[Player, None]:      
+        winner_horizontal = self.get_winner_from_line((0, self.rows_count, 1), (0, self.cols_count - 3, 1), 'horizontal')
+        winner_vertical = self.get_winner_from_line((0, self.rows_count - 3, 1), (0, self.cols_count, 1), 'vertical')
+        winner_top_left_bottom_right = self.get_winner_from_line((0, self.rows_count - 3, 1), (0, self.cols_count - 3, 1), 'top_left_bottom_right')
+        winner_top_right_bottom_left = self.get_winner_from_line((3, self.rows_count, 1), (0, self.cols_count - 3, 1), 'top_right_bottom_left')
+
+        
+        return winner_horizontal or winner_vertical or winner_top_left_bottom_right or winner_top_right_bottom_left
 
 
     def is_draw(self) -> bool:
