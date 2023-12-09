@@ -104,25 +104,19 @@ class Board:
         col = self.get_col(index)
         col_items = enumerate(col)
         token_idx = 0
-
+        
         for count, value in col_items:
-            if value == current_player.token:
-                token_idx = count
-                break
-
-            if current_player.token != self.first_player.token and value == self.first_player.token:
-                token_idx = count
-                break
-
-            if current_player.token != self.second_player.token and value == self.second_player.token:
+            if value == current_player.token or \
+            (current_player.token != self.first_player.token and value == self.first_player.token) or \
+            (current_player.token != self.second_player.token and value == self.second_player.token):
                 token_idx = count
                 break
 
         if token_idx == 0:
-            col[len(col) - 1] = (
-                current_player.token if col[len(col) - 1] == self.default_char else col[len(col) - 1]
-            )
-            current_player.save_move(len(col) - 1, index, current_player.token)   
+            last_index = len(col) - 1
+            if col[last_index] == self.default_char:
+                col[last_index] = current_player.token
+                current_player.save_move(last_index, index, current_player.token)   
         else:
             col[token_idx - 1] = current_player.token
             current_player.save_move(token_idx - 1, index, current_player.token)
