@@ -51,7 +51,7 @@ class Board:
                     return i
                 
         else:
-            for i in range(1, len(self.board[0])):
+            for i in range(len(self.board[0])):
                 col = self.get_col(i)
                 if any(element == self.default_char for element in col):
                     return i
@@ -72,37 +72,32 @@ class Board:
             if ai_move == Player_Type.RANDOM:
                 index = randint(0, len(self.board[0]) - 1)
                 
-            elif ai_move == Player_Type.FOLLOW:
+            else:
                 opponent_player = self.first_player if current_player == self.second_player else self.second_player
                 if len(opponent_player.moves) == 0:
                     index = randint(0, len(self.board[0]) - 1)
+                    
                 else:
                     last_move_index = opponent_player.moves[-1][1]
-                    
-                    if last_move_index < self.cols_count:
-                        next_index = last_move_index + 1
-                        
-                        if next_index == len(self.board[0]):
-                            next_index = self.get_nearest_available_column(next_index)
-                        elif current_player.token in self.get_col(next_index):
-                            next_index -= 1
+                    if ai_move == Player_Type.FOLLOW:
+                        if last_move_index < self.cols_count:
+                            next_index = last_move_index + 1
+                            
+                            if next_index == len(self.board[0]):
+                                next_index = self.get_nearest_available_column(next_index)
+                            elif current_player.token in self.get_col(next_index):
+                                next_index -= 1
 
-                        index = next_index
-                    
-            elif ai_move == Player_Type.OPPOSITE:
-                opponent_player = self.first_player if current_player == self.second_player else self.second_player
-                if len(opponent_player.moves) == 0:
-                    index = randint(0, len(self.board[0]) - 1)
-                else:
-                    last_move_index = opponent_player.moves[-1][1]
-                    
-                    opposite_index = abs(last_move_index - (len(self.board[0]) - 1))
-                    opposite_col = self.get_col(opposite_index)
-                    
-                    if all(element != self.default_char for element in opposite_col):
-                        opposite_index = self.get_nearest_available_column(opposite_index)
+                            index = next_index
+                            
+                    elif ai_move == Player_Type.OPPOSITE:
+                            opposite_index = abs(last_move_index - (len(self.board[0]) - 1))
+                            opposite_col = self.get_col(opposite_index)
+                            
+                            if all(element != self.default_char for element in opposite_col):
+                                opposite_index = self.get_nearest_available_column(opposite_index)
 
-                    index = opposite_index
+                            index = opposite_index
         else:
             while not (0 <= index <= len(self.board[0]) - 1):
                 try:
