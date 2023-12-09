@@ -1,3 +1,4 @@
+import enum
 from os import system, name
 from random import randint
 from time import sleep
@@ -43,6 +44,14 @@ class Board:
         assert i < self.rows_count and i >= 0, f"Index {i} for row is out of bounds"
         assert j < self.cols_count and j >= 0, f"Index {j} for column is out of bounds"
         return self.board[i][j]
+    
+    def get_nearest_available_column(self, index: int) -> int:
+        for i in range(index - 1, 0, -1):
+            col = self.get_col(i)
+            if any(element == self.default_char for element in col):
+                return i
+            
+        return 0
 
     def play(self) -> None:
         current_player = self.first_player if self.first_player.playing else self.second_player
@@ -54,20 +63,23 @@ class Board:
             ai_move = current_player.ai_move
             print(f'{current_player.name} thinking...')
             sleep(1)
+            
             if ai_move == Player_Type.RANDOM:
                 index = randint(0, len(self.board[0]) - 1)
+                
             if ai_move == Player_Type.FOLLOW:
-                opponent = self.first_player if current_player == self.second_player else self.second_player
-                last_move_index = opponent.moves[len(opponent.moves) - 1][1]
+                opponent_player = self.first_player if current_player == self.second_player else self.second_player
+                last_move_index = opponent_player.moves[-1][1]
+                
                 if last_move_index < self.cols_count:
                     next_index = last_move_index + 1
-                    if next_index == len(self.board[0]):
-                        print(last_move_index, next_index)
-                        assert False, "TODO: choose new index because board size is reached"  
-                    index = next_index
                     
-                # last_move_index = opponent.moves[len(opponent.moves) - 1][1]
-                # index = last_move_index if last_move_index < self.rows_count else last_move_index + 1
+                    if next_index == len(self.board[0]):
+                        next_index = self.get_nearest_available_column(next_index)
+                    elif current_player.token in self.get_col(next_index):
+                        next_index -= 1
+
+                    index = next_index
         else:
             while not (0 <= index <= len(self.board[0]) - 1):
                 try:
