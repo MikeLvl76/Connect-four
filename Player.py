@@ -4,6 +4,7 @@ from typing import Union
 class Player_Type:
     RANDOM = 'random'
     FOLLOW = 'follow'
+    OPPOSITE = 'opposite'
 
 class Player:
     def __init__(

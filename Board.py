@@ -1,9 +1,7 @@
-import enum
 from os import system, name
 from random import randint
 from time import sleep
-from typing import Union
-from Player import Player, Player_Type
+from Player import Player, Player_Type, Union
 
 
 class Board:
@@ -46,10 +44,17 @@ class Board:
         return self.board[i][j]
     
     def get_nearest_available_column(self, index: int) -> int:
-        for i in range(index - 1, 0, -1):
-            col = self.get_col(i)
-            if any(element == self.default_char for element in col):
-                return i
+        if index == len(self.board[0]):
+            for i in range(index - 1, 0, -1):
+                col = self.get_col(i)
+                if any(element == self.default_char for element in col):
+                    return i
+                
+        else:
+            for i in range(1, len(self.board[0])):
+                col = self.get_col(i)
+                if any(element == self.default_char for element in col):
+                    return i
             
         return 0
 
@@ -62,24 +67,42 @@ class Board:
         if current_player.ai_move:
             ai_move = current_player.ai_move
             print(f'{current_player.name} thinking...')
-            sleep(1)
+            sleep(3)
             
             if ai_move == Player_Type.RANDOM:
                 index = randint(0, len(self.board[0]) - 1)
                 
-            if ai_move == Player_Type.FOLLOW:
+            elif ai_move == Player_Type.FOLLOW:
                 opponent_player = self.first_player if current_player == self.second_player else self.second_player
-                last_move_index = opponent_player.moves[-1][1]
-                
-                if last_move_index < self.cols_count:
-                    next_index = last_move_index + 1
+                if len(opponent_player.moves) == 0:
+                    index = randint(0, len(self.board[0]) - 1)
+                else:
+                    last_move_index = opponent_player.moves[-1][1]
                     
-                    if next_index == len(self.board[0]):
-                        next_index = self.get_nearest_available_column(next_index)
-                    elif current_player.token in self.get_col(next_index):
-                        next_index -= 1
+                    if last_move_index < self.cols_count:
+                        next_index = last_move_index + 1
+                        
+                        if next_index == len(self.board[0]):
+                            next_index = self.get_nearest_available_column(next_index)
+                        elif current_player.token in self.get_col(next_index):
+                            next_index -= 1
 
-                    index = next_index
+                        index = next_index
+                    
+            elif ai_move == Player_Type.OPPOSITE:
+                opponent_player = self.first_player if current_player == self.second_player else self.second_player
+                if len(opponent_player.moves) == 0:
+                    index = randint(0, len(self.board[0]) - 1)
+                else:
+                    last_move_index = opponent_player.moves[-1][1]
+                    
+                    opposite_index = abs(last_move_index - (len(self.board[0]) - 1))
+                    opposite_col = self.get_col(opposite_index)
+                    
+                    if all(element != self.default_char for element in opposite_col):
+                        opposite_index = self.get_nearest_available_column(opposite_index)
+
+                    index = opposite_index
         else:
             while not (0 <= index <= len(self.board[0]) - 1):
                 try:
