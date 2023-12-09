@@ -44,29 +44,6 @@ class Board:
         assert j < self.cols_count and j >= 0, f"Index {j} for column is out of bounds"
         return self.board[i][j]
 
-    def get_diagonals(self, i: int, j: int) -> dict:
-        length: int = min(self.rows_count, self.cols_count)
-        d1, d2, d3, d4 = [], [], [], []
-
-        for k in range(length):
-            if i - k >= 0 and j - k >= 0:
-                d1.append(self.get_location(i - k, j - k))  # top left
-
-            if i + k < length and j + k < length + 1:
-                d2.append(self.get_location(i + k, j + k))  # bottom right
-
-            if i - k >= 0 and j + k < length + 1:
-                d3.append(self.get_location(i - k, j + k))  # top right
-
-            if i + k < length and j - k >= 0:
-                d4.append(self.get_location(i + k, j - k))  # bottom left
-
-        return {
-            "location": (i, j, self.get_location(i, j)),
-            "first_diagonal": [*[*d1[1::]][::-1], *d2],
-            "second_diagonal": [*[*d3[1::]][::-1], *d4],
-        }
-
     def play(self) -> None:
         current_player = self.first_player if self.first_player.playing else self.second_player
         print(f'Number of turn played: {self.turn}')
@@ -76,7 +53,7 @@ class Board:
         if current_player.ai_move:
             ai_move = current_player.ai_move
             print(f'{current_player.name} thinking...')
-            sleep(3)
+            sleep(1)
             if ai_move == Player_Type.RANDOM:
                 index = randint(0, len(self.board[0]) - 1)
             if ai_move == Player_Type.FOLLOW:
@@ -157,12 +134,8 @@ class Board:
 
 
     def is_draw(self) -> bool:
-        for row in range(self.rows_count):
-            for col in range(self.cols_count):
-                if self.get_location(row, col) == self.default_char:
-                    return False
+        return all(self.get_location(row, col) != self.default_char for row in range(self.rows_count) for col in range(self.cols_count))
 
-        return True
 
     def print(self) -> None:
         system("cls" if name == "nt" else "clear")
