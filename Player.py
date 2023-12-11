@@ -6,6 +6,7 @@ class Player_Type:
     FOLLOW = 'follow'
     OPPOSITE = 'opposite'
 
+
 class Player:
     def __init__(
         self, name: str, token: str, color: str, playing: bool = False, ai_move: Union[str, None] = None

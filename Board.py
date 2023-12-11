@@ -1,7 +1,8 @@
 from os import system, name
 from random import randint
 from time import sleep
-from Player import Player, Player_Type, Union
+from typing import Union
+from player import Player, Player_Type
 
 
 class Board:
@@ -177,9 +178,9 @@ class Board:
             formatted_row = [
                 cell.center(3)
                 if cell == self.default_char
-                else self.first_player.color.center(3)
+                else f' {self.first_player.color} '.center(3)
                 if cell == self.first_player.token
-                else self.second_player.color.center(3)
+                else f' {self.second_player.color} '.center(3)
                 for cell in row
             ]
             print(f"| {' | '.join(formatted_row)} |")  # each row
