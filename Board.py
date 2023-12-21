@@ -44,20 +44,33 @@ class Board:
         assert j < self.cols_count and j >= 0, f"Index {j} for column is out of bounds"
         return self.board[i][j]
     
+    def is_col_full(self, index: int) -> bool:
+        col = self.get_col(index)
+        return all(element != self.default_char for element in col)
+    
     def get_nearest_available_column(self, index: int) -> int:
-        if index == len(self.board[0]):
-            for i in range(index - 1, 0, -1):
-                col = self.get_col(i)
-                if any(element == self.default_char for element in col):
+        if index >= self.cols_count:
+            index = self.cols_count - 1
+            
+        if self.is_col_full(index):
+            if index == 0:
+                index += 1
+            elif index == self.cols_count - 1:
+                index -= 1
+
+            # left
+            for i in range(index, -1, -1):
+                current_column = self.get_col(i)
+                if any(element == self.default_char for element in current_column):
                     return i
                 
-        else:
-            for i in range(len(self.board[0])):
-                col = self.get_col(i)
-                if any(element == self.default_char for element in col):
+            # right
+            for i in range(index, self.cols_count):
+                current_column = self.get_col(i)
+                if any(element == self.default_char for element in current_column):
                     return i
-            
-        return 0
+
+        return index
 
     def play(self) -> None:
         current_player = self.first_player if self.first_player.playing else self.second_player
@@ -71,12 +84,12 @@ class Board:
             sleep(3)
             
             if ai_move == Player_Type.RANDOM:
-                index = randint(0, len(self.board[0]) - 1)
+                index = randint(0, self.cols_count - 1)
                 
             else:
                 opponent_player = self.first_player if current_player == self.second_player else self.second_player
                 if len(opponent_player.moves) == 0:
-                    index = randint(0, len(self.board[0]) - 1)
+                    index = randint(0, self.cols_count - 1)
                     
                 else:
                     last_move_index = opponent_player.moves[-1][1]
@@ -84,15 +97,14 @@ class Board:
                         if last_move_index < self.cols_count:
                             next_index = last_move_index + 1
                             
-                            if next_index == len(self.board[0]):
-                                next_index = self.get_nearest_available_column(next_index)
-                            elif current_player.token in self.get_col(next_index):
+                            next_index = self.get_nearest_available_column(next_index)
+                            if current_player.token in self.get_col(next_index):
                                 next_index -= 1
 
                             index = next_index
                             
                     elif ai_move == Player_Type.OPPOSITE:
-                            opposite_index = abs(last_move_index - (len(self.board[0]) - 1))
+                            opposite_index = abs(last_move_index - (self.cols_count - 1))
                             opposite_col = self.get_col(opposite_index)
                             
                             if all(element != self.default_char for element in opposite_col):
@@ -100,16 +112,17 @@ class Board:
 
                             index = opposite_index
         else:
-            while not (0 <= index <= len(self.board[0]) - 1):
+            while not (0 <= index <= self.cols_count - 1):
                 try:
-                    index = int(input(f"Choose column index (from 0 to {len(self.board[0]) - 1}): "))
-                    if not (0 <= index <= len(self.board[0]) - 1):
-                        print(f"Index must be between 0 and {len(self.board[0]) - 1}.")
+                    index = int(input(f"Choose column index (from 0 to {self.cols_count - 1}): "))
+                    if not (0 <= index <= self.cols_count - 1):
+                        print(f"Index must be between 0 and {self.cols_count - 1}.")
                 except ValueError:
                     print("Please enter a valid integer.")
         
 
-        col = self.get_col(index)
+        available_index = self.get_nearest_available_column(index)
+        col = self.get_col(available_index)
         col_items = enumerate(col)
         token_idx = 0
         
@@ -124,12 +137,12 @@ class Board:
             last_index = len(col) - 1
             if col[last_index] == self.default_char:
                 col[last_index] = current_player.token
-                current_player.save_move(last_index, index, current_player.token)   
+                current_player.save_move(last_index, available_index, current_player.token)   
         else:
             col[token_idx - 1] = current_player.token
-            current_player.save_move(token_idx - 1, index, current_player.token)
+            current_player.save_move(token_idx - 1, available_index, current_player.token)
            
-        self.set_col(index, col)
+        self.set_col(available_index, col)
         self.print()
 
         self.first_player.playing = not self.first_player.playing
@@ -171,18 +184,19 @@ class Board:
     def print(self) -> None:
         system("cls" if name == "nt" else "clear")
 
-        print(f"   {'     '.join(str(i) for i in range(len(self.board[0])))}")  # column indices
-        print(f"{'-' * 6 * len(self.board[0])}-")  # header line
+        cell_width = 5  # Cell width
+        column_indices = ''.join(f'  {i:^{cell_width - 1}}' for i in range(self.cols_count))
+        horizontal_line = '+' + '+'.join('-' * cell_width for _ in range(self.cols_count)) + '+'
+
+        print(column_indices)  # column indices
+        print(horizontal_line)  # header line
 
         for row in self.board:
             formatted_row = [
-                cell.center(3)
-                if cell == self.default_char
-                else f' {self.first_player.color} '.center(3)
-                if cell == self.first_player.token
-                else f' {self.second_player.color} '.center(3)
+                cell.center(cell_width) if cell == self.default_char
+                else f'{self.first_player.color:^{cell_width}}' if cell == self.first_player.token
+                else f'{self.second_player.color:^{cell_width}}'
                 for cell in row
             ]
-            print(f"| {' | '.join(formatted_row)} |")  # each row
-
-        print(f"{'-' * 6 * len(self.board[0])}-")  # footer line
+            print(f'|{ "|".join(formatted_row) }|'.center(cell_width * self.cols_count + self.cols_count - 1))  # each row
+            print(horizontal_line)  
