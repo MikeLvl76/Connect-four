@@ -13,4 +13,4 @@ def color_string(color: str, string: str) -> str:
     color_value = colors.get(color)
     if not color_value:
         return string
-    return f"{color_value}{string}{colors.get('ENDC')}"
+    return f"  {color_value}{string}{colors.get('ENDC')}  "
