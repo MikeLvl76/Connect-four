@@ -2,7 +2,7 @@ from os import system, name
 from random import randint
 from time import sleep
 from typing import Union
-from player import Player, Player_Type
+from Player import Player, Player_Type
 
 
 class Board:

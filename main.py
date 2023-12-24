@@ -1,7 +1,7 @@
 from os import name, system
 from cmd_prompt_colors import color_string, colors
-from player import Player
-from board import Board
+from Player import Player
+from Board import Board
 
 def main():
     system("cls" if name == "nt" else "clear")
